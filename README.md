@@ -1,4 +1,4 @@
-# Multi-Armed-Bandit-MAB
+![image](https://github.com/user-attachments/assets/62e7f50c-9b5d-41a5-8344-97552307c9ac)# Multi-Armed-Bandit-MAB
 
 # HW3: Explore and Exploit for Arm-Bandit Problem
 
@@ -10,15 +10,14 @@
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 
 class BanditEnv:
     def __init__(self, k=10):
         self.k = k
-        self.means = np.random.normal(0, 1, k)  # 每個 arm 的平均值
-
+        self.true_means = np.random.normal(0, 1, k)
+    
     def pull(self, arm):
-        return np.random.normal(self.means[arm], 1)  # 加入標準差模擬不確定性
+        return np.random.normal(self.true_means[arm], 1)
 ```
 
 ---
@@ -48,6 +47,8 @@ a \sim \text{Uniform}(0, k-1) & \text{with probability } \epsilon
 ### (3) 程式碼與圖表
 
 ```python
+import matplotlib.pyplot as plt
+
 def epsilon_greedy(env, epsilon=0.1, steps=1000):
     k = env.k
     Q = np.zeros(k)
@@ -60,15 +61,27 @@ def epsilon_greedy(env, epsilon=0.1, steps=1000):
             action = np.random.choice(k)
         else:
             action = np.argmax(Q)
-
+        
         reward = env.pull(action)
         N[action] += 1
         Q[action] += (reward - Q[action]) / N[action]
         cumulative += reward
         rewards.append(cumulative)
-
+    
     return rewards
+
+env = BanditEnv()
+eps_rewards = epsilon_greedy(env)
+
+plt.plot(eps_rewards, label='Epsilon-Greedy')
+plt.xlabel('Steps')
+plt.ylabel('Cumulative Reward')
+plt.title('Epsilon-Greedy Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
 ```
+![image](https://github.com/user-attachments/assets/e5210a9e-e987-45ef-be65-263dc2005d0a)
 
 ### (4) 結果分析
 
@@ -112,9 +125,22 @@ def ucb(env, c=2, steps=1000):
         Q[action] += (reward - Q[action]) / N[action]
         cumulative += reward
         rewards.append(cumulative)
-
+    
     return rewards
+
+env = BanditEnv()
+ucb_rewards = ucb(env)
+
+plt.plot(ucb_rewards, label='UCB')
+plt.xlabel('Steps')
+plt.ylabel('Cumulative Reward')
+plt.title('UCB Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
+
 ```
+![image](https://github.com/user-attachments/assets/0085c65d-3f4a-4b98-8021-2fd81cd55f0f)
 
 ### (4) 結果分析
 
@@ -153,15 +179,27 @@ def softmax(env, tau=0.1, steps=1000):
         exp_Q = np.exp(Q / tau)
         probs = exp_Q / np.sum(exp_Q)
         action = np.random.choice(k, p=probs)
-
+        
         reward = env.pull(action)
         N[action] += 1
         Q[action] += (reward - Q[action]) / N[action]
         cumulative += reward
         rewards.append(cumulative)
-
+    
     return rewards
+
+env = BanditEnv()
+softmax_rewards = softmax(env)
+
+plt.plot(softmax_rewards, label='Softmax')
+plt.xlabel('Steps')
+plt.ylabel('Cumulative Reward')
+plt.title('Softmax Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
 ```
+![image](https://github.com/user-attachments/assets/e9aa5448-1206-4d6a-990b-bcec5ba811d9)
 
 ### (4) 結果分析
 
@@ -200,7 +238,7 @@ def thompson_sampling(env, steps=1000):
         theta = np.random.beta(alpha, beta)
         action = np.argmax(theta)
         reward = env.pull(action)
-        reward_bin = 1 if reward > 0 else 0
+        reward_bin = 1 if reward > 0 else 0  # 把常態分布轉為伯努力
 
         alpha[action] += reward_bin
         beta[action] += 1 - reward_bin
@@ -208,7 +246,19 @@ def thompson_sampling(env, steps=1000):
         rewards.append(cumulative)
 
     return rewards
+
+env = BanditEnv()
+ts_rewards = thompson_sampling(env)
+
+plt.plot(ts_rewards, label='Thompson Sampling')
+plt.xlabel('Steps')
+plt.ylabel('Cumulative Reward')
+plt.title('Thompson Sampling Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
 ```
+![image](https://github.com/user-attachments/assets/5a58a159-e615-4ce8-8bff-f626fc7e7567)
 
 ### (4) 結果分析
 
@@ -241,6 +291,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 ```
+![image](https://github.com/user-attachments/assets/50c8a93b-eb9a-4e35-8510-f37ffe6da88f)
 
 ---
 
