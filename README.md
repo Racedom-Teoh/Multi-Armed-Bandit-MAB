@@ -135,12 +135,57 @@ plt.show()
 
 ### (1) Algorithm Formula (LaTeX)
 
+![image](https://github.com/user-attachments/assets/0c6497c0-270d-443e-a6e2-7d7cdf7e65f7)
+
+
+```latex
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}  % 更好看一点的页面边距
+\usepackage{tcolorbox}  % 用于漂亮的内容框
+
+\begin{document}
+
+\begin{center}
+    \LARGE \textbf{UCB Algorithm for Multi-Armed Bandit}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Action Selection Rule]
+At each time step $t$, the action $A_t$ is selected as:
+
 \[
 A_t = \arg\max_a \left[ Q_t(a) + c \cdot \sqrt{\frac{\ln t}{N_t(a)}} \right]
 \]
 
-```latex
-A_t = \arg\max_a \left[ Q_t(a) + c \cdot \sqrt{\frac{\ln t}{N_t(a)}} \right]
+Where:
+\begin{itemize}
+    \item $Q_t(a)$ is the estimated value of action $a$ at time $t$.
+    \item $N_t(a)$ is the number of times action $a$ has been selected up to time $t$.
+    \item $c > 0$ is a tunable parameter that balances exploration and exploitation.
+    \item $\ln t$ encourages exploration of less-frequently selected actions.
+\end{itemize}
+\end{tcolorbox}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Value Update Rule]
+After choosing action $a$ and receiving reward $R_t$, the value estimate is updated as:
+
+\[
+Q_{t+1}(a) = Q_t(a) + \alpha \left( R_t - Q_t(a) \right)
+\]
+
+Here, $\alpha \in (0,1]$ is the learning rate that controls how quickly the estimates adapt to new rewards. Alternatively, one can use a sample average (i.e., $\alpha = \frac{1}{N_t(a)}$) for non-stationary problems.
+\end{tcolorbox}
+
+\end{document}
+
 ```
 
 ### (2) ChatGPT Prompt
@@ -194,12 +239,61 @@ plt.show()
 
 ### (1) Algorithm Formula (LaTeX)
 
-\[
-P(a) = \frac{\exp(Q_t(a) / \tau)}{\sum_{b=1}^{k} \exp(Q_t(b) / \tau)}
-\]
+![image](https://github.com/user-attachments/assets/665bcca3-6b49-4c48-a4b5-604a8857b183)
+
 
 ```latex
-P(a) = \frac{\exp(Q_t(a) / \tau)}{\sum_{b=1}^{k} \exp(Q_t(b) / \tau)}
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}  % 更好看一点的页面边距
+\usepackage{tcolorbox}  % 用于漂亮的内容框
+
+\begin{document}
+
+\begin{center}
+    \LARGE \textbf{Softmax Algorithm for Multi-Armed Bandit}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Action Selection Rule]
+At each time step $t$, the probability of selecting action $a$ is computed using the softmax function:
+
+\[
+P_t(a) = \frac{e^{Q_t(a)/\tau}}{\sum\limits_b e^{Q_t(b)/\tau}}
+\]
+
+Then, action $A_t$ is sampled according to the distribution $P_t(a)$.
+
+Where:
+\begin{itemize}
+    \item $Q_t(a)$ is the estimated value of action $a$ at time $t$.
+    \item $\tau > 0$ is the \textbf{temperature} parameter that controls the randomness of action selection:
+    \begin{itemize}
+        \item High $\tau$: more exploration (actions have similar probabilities)
+        \item Low $\tau$: more exploitation (focuses on high-value actions)
+    \end{itemize}
+\end{itemize}
+\end{tcolorbox}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Value Update Rule]
+After choosing action $a$ and receiving reward $R_t$, the value estimate is updated as:
+
+\[
+Q_{t+1}(a) = Q_t(a) + \alpha \left( R_t - Q_t(a) \right)
+\]
+
+Here, $\alpha \in (0,1]$ is the learning rate that determines how quickly the estimate adapts to new information. A decaying or sample-average approach to $\alpha$ is also commonly used.
+\end{tcolorbox}
+
+\end{document}
+
 ```
 
 ### (2) ChatGPT Prompt
@@ -253,12 +347,68 @@ plt.show()
 
 ### (1) Algorithm Formula (LaTeX)
 
-\[
-\theta_a \sim \text{Beta}(\alpha_a, \beta_a), \quad A_t = \arg\max_a \theta_a
-\]
+![image](https://github.com/user-attachments/assets/9ca620c3-da84-4243-b4f6-b33f1742bfa8)
+
 
 ```latex
-\theta_a \sim \text{Beta}(\alpha_a, \beta_a), \quad A_t = \arg\max_a \theta_a
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}  % 更好看一点的页面边距
+\usepackage{tcolorbox}  % 用于漂亮的内容框
+
+\begin{document}
+
+\begin{center}
+    \LARGE \textbf{Thompson Sampling for Multi-Armed Bandit}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Action Selection Rule]
+At each time step $t$, the agent maintains a posterior distribution over the reward of each action. The action $A_t$ is selected as:
+
+\[
+A_t = \arg\max_a \theta_a
+\]
+
+Where:
+\begin{itemize}
+    \item For each action $a$, sample $\theta_a$ from its posterior distribution $P(\theta_a \mid \text{data})$.
+    \item Choose the action $a$ with the highest sampled $\theta_a$.
+\end{itemize}
+
+\textbf{Typical case: Bernoulli rewards}
+
+\begin{itemize}
+    \item Use Beta distribution as the conjugate prior.
+    \item Maintain parameters $(\alpha_a, \beta_a)$ for each action $a$:
+    \[
+    \theta_a \sim \text{Beta}(\alpha_a, \beta_a)
+    \]
+\end{itemize}
+\end{tcolorbox}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Posterior Update Rule]
+After choosing action $a$ and observing reward $R_t \in \{0,1\}$ (e.g., Bernoulli reward), update the Beta distribution parameters:
+
+\[
+\alpha_a \leftarrow \alpha_a + R_t, \quad \beta_a \leftarrow \beta_a + (1 - R_t)
+\]
+
+This keeps the posterior up to date:
+\[
+\theta_a \sim \text{Beta}(\alpha_a, \beta_a)
+\]
+\end{tcolorbox}
+
+\end{document}
+
 ```
 
 ### (2) ChatGPT Prompt
