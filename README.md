@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/62e7f50c-9b5d-41a5-8344-97552307c9ac)# Multi-Armed-Bandit-MAB
+# Multi-Armed-Bandit-MAB
 
 # HW3: Explore and Exploit for Arm-Bandit Problem
 
@@ -26,18 +26,59 @@ class BanditEnv:
 
 ### (1) Algorithm Formula (LaTeX)
 
+![image](https://github.com/user-attachments/assets/1e93387a-dd24-432a-b5be-ca6fbdccd743)
+
+```latex
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}  
+\usepackage{tcolorbox}  
+
+\begin{document}
+
+\begin{center}
+    \LARGE \textbf{$\varepsilon$-Greedy Algorithm}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Action Selection Rule]
+At each time step $t$, the action $A_t$ is selected as:
+
 \[
-A_t = \begin{cases}
-\arg\max_a Q_t(a) & \text{with probability } 1 - \epsilon \\
-a \sim \text{Uniform}(0, k-1) & \text{with probability } \epsilon
+A_t =
+\begin{cases}
+\arg\max\limits_a Q_t(a) & \text{with probability } 1 - \varepsilon \\
+\text{random arm} & \text{with probability } \varepsilon
 \end{cases}
 \]
 
-```latex
-A_t = \begin{cases}
-\arg\max_a Q_t(a) & \text{with probability } 1 - \epsilon \\
-a \sim \text{Uniform}(0, k-1) & \text{with probability } \epsilon
-\end{cases}
+Where:
+\begin{itemize}
+    \item $Q_t(a)$ is the estimated value of the action $a$ at time $t$.
+    \item $\varepsilon$ is a small value (e.g. 0.1) controlling exploration.
+\end{itemize}
+\end{tcolorbox}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\begin{tcolorbox}[colback=gray!5, colframe=black!40, title=Value Update Rule]
+After choosing action $a$ and receiving reward $R_t$, the value estimate is updated as:
+
+\[
+Q_{t+1}(a) = Q_t(a) + \alpha \left( R_t - Q_t(a) \right)
+\]
+
+Here, $\alpha \in (0,1]$ is the learning rate that controls how quickly the estimates adapt to new rewards.
+\end{tcolorbox}
+
+\end{document}
+
+
 ```
 
 ### (2) ChatGPT Prompt
