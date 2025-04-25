@@ -13,41 +13,6 @@
 
 ![image](https://github.com/user-attachments/assets/ff0e27d3-48a6-4c3a-8ea2-fa901512d5c2)
 
-以下是 Python 的模擬環境程式碼：
-
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-
-class BanditEnv:
-    def __init__(self, k=30, random_seed=None):
-        self.k = k
-        # 設置隨機種子以保證每次執行結果一致
-        if random_seed is not None:
-            np.random.seed(random_seed)
-        # 生成真實回報，使 0 号 arm 最高，逐渐递减到负数
-        self.true_means = np.linspace(40, -40, k)
-
-    def pull(self, arm):
-        return np.random.normal(self.true_means[arm], 1)
-
-# 設定隨機種子
-random_seed = 10
-
-# 設定環境，並固定隨機種子
-env = BanditEnv(k=30, random_seed=random_seed)
-
-# 繪製每個 arm 的真實價值
-plt.figure(figsize=(10, 6))
-plt.bar(range(env.k), env.true_means, color='skyblue')
-plt.xlabel('Arm')
-plt.ylabel('True Mean Value')
-plt.title(f'True Value of Each Arm (Random Seed: {random_seed})')
-plt.grid(True)
-plt.show()
-
-```
-
 ---
 
 ## 🎯 演算法一：Epsilon-Greedy
@@ -85,7 +50,7 @@ plt.show()
   - 表明 Epsilon-Greedy 在本情境下的探索效果不好，早期探索選錯 arm，後續 exploitation 又堅持錯誤的 arm，導致整體表現受限。
 ---
 
-## 📌 演算法二：UCB (Upper Confidence Bound)
+## 🎯 演算法二：UCB (Upper Confidence Bound)
 
 ### (1) Algorithm Formula (LaTeX)
 
