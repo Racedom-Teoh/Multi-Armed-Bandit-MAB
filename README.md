@@ -36,18 +36,19 @@
 ## (4) 結果分析
 
 ### ⏱ 時間角度（Time Perspective）
- 1. 累積報酬（Cumulative Reward）
-  - 累積報酬曲線整體上升，但過程中有明顯波動，且成長速度偏慢，最終累積報酬遠低於其他策略。
-  - 顯示 Epsilon-Greedy 策略在本次設定中無法有效辨識出真正高報酬的 arm，導致探索與 exploitation 的表現皆不理想。
+ 
+ *1. 累積報酬（Cumulative Reward）*
+    - 累積報酬曲線整體上升，但過程中有明顯波動，且成長速度偏慢，最終累積報酬遠低於其他策略。
+    - 顯示 Epsilon-Greedy 策略在本次設定中無法有效辨識出真正高報酬的 arm，導致探索與 exploitation 的表現皆不理想。
 
- 2. 平均每步報酬（Average Reward per Step）
-  - 平均每步報酬趨勢緩慢上升，但最終穩定在非常低的值（約 0.05），顯示其長期收益非常有限。
-  - 由於未正確找到最佳 arm，使得 exploitation 階段也無法有效提升平均收益。
+ *2. 平均每步報酬（Average Reward per Step）*
+    - 平均每步報酬趨勢緩慢上升，但最終穩定在非常低的值（約 0.05），顯示其長期收益非常有限。
+    - 由於未正確找到最佳 arm，使得 exploitation 階段也無法有效提升平均收益。
 ---
 ### 📌 空間角度（Space Perspective）
- 3. arm 選擇次數（Arm Selection Counts）
-  - Epsilon-Greedy 策略下，第 17 號 arm 被選擇次數最多，而真正的最佳 arm（第 15 號）幾乎沒有被重點選取。
-  - 表明 Epsilon-Greedy 在本情境下的探索效果不好，早期探索選錯 arm，後續 exploitation 又堅持錯誤的 arm，導致整體表現受限。
+ *3. arm 選擇次數（Arm Selection Counts）*
+    - Epsilon-Greedy 策略下，第 17 號 arm 被選擇次數最多，而真正的最佳 arm（第 15 號）幾乎沒有被重點選取。
+    - 表明 Epsilon-Greedy 在本情境下的探索效果不好，早期探索選錯 arm，後續 exploitation 又堅持錯誤的 arm，導致整體表現受限。
 ---
 
 ## 🎯 演算法二：UCB (Upper Confidence Bound)
