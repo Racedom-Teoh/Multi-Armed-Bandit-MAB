@@ -78,8 +78,6 @@ UCB 方法基於「樂觀原則」，對每個 arm 計算其平均報酬與一�
     - 但其他 arm 的選擇次數較分散，顯示 Softmax 維持一定程度的隨機探索。
 ---
 
----
-
 ## 🎲 演算法三：Softmax
 Softmax 是一種機率性選擇策略，根據每個 arm 的平均報酬轉換成機率分布（使用 softmax 函數），讓報酬高的 arm 更容易被選中。透過溫度參數 τ 調節探索與利用的平衡：τ 大時較均勻、τ 小時偏向 exploitation。Softmax 策略使系統更平滑地過渡到最佳選擇，適合對「穩健探索」有需求的應用。
 ### (1) Algorithm Formula (LaTeX)
@@ -108,7 +106,6 @@ Softmax 是一種機率性選擇策略，根據每個 arm 的平均報酬轉換�
  3. arm 選擇次數（Arm Selection Counts）
     - 雖然第 15 號 arm仍然是被最多次選擇的，但其他 arm 也有較多次的探索紀錄，相比 Epsilon-Greedy更加平均。
     - 顯示 UCB 保持了一定程度的探索，同時也能聚焦在最佳 arm，符合其「樂觀初始估計」的特性。
-
 ---
 
 ## 🎯 演算法四：Thompson Sampling
