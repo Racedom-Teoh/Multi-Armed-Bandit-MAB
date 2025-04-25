@@ -4,24 +4,48 @@
 
 ## 🎮 環境介紹：多臂機器人（Multi-Armed Bandit）
 
-我們定義一個 K 臂的多臂機器人環境，其中每個 arm 都有一個固定但未知的報酬分布。目標是透過演算法在有限次試驗內最大化總報酬（cumulative reward）。
+我們定義一個 K 臂的多臂機器人環境，專為測試探索策略在難以分辨的 arm 情境下的表現。環境設計讓大多數 arm 的期望報酬極為接近，僅有一個最佳 arm 稍微優於其他，適合作為評估 Thompson Sampling 等策略的基準。目標是透過演算法在有限次試驗內識別最佳 arm 並最大化總報酬（cumulative reward）。
  - 每個 arm 的獎勵服從常態分布 N(μ_i, 1)
- - 總試驗次數：1000 次
- - arms 數量：10 臂
- - 真實期望值 μ_i 為從 N(0, 1) 隨機生成
+ - 總試驗次數：10000 次
+ - arms 數量：30 臂
+ - 真實期望值 μ_i 為從 N(0, 0.01) 隨機生成
+ - 隨機指定一個最佳 arm，其期望值額外加上 0.25
+
+![image](https://github.com/user-attachments/assets/ff0e27d3-48a6-4c3a-8ea2-fa901512d5c2)
 
 以下是 Python 的模擬環境程式碼：
 
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 
 class BanditEnv:
-    def __init__(self, k=10):
+    def __init__(self, k=30, random_seed=None):
         self.k = k
-        self.true_means = np.random.normal(0, 1, k)
-    
+        # 設置隨機種子以保證每次執行結果一致
+        if random_seed is not None:
+            np.random.seed(random_seed)
+        # 生成真實回報，使 0 号 arm 最高，逐渐递减到负数
+        self.true_means = np.linspace(40, -40, k)
+
     def pull(self, arm):
         return np.random.normal(self.true_means[arm], 1)
+
+# 設定隨機種子
+random_seed = 10
+
+# 設定環境，並固定隨機種子
+env = BanditEnv(k=30, random_seed=random_seed)
+
+# 繪製每個 arm 的真實價值
+plt.figure(figsize=(10, 6))
+plt.bar(range(env.k), env.true_means, color='skyblue')
+plt.xlabel('Arm')
+plt.ylabel('True Mean Value')
+plt.title(f'True Value of Each Arm (Random Seed: {random_seed})')
+plt.grid(True)
+plt.show()
+
 ```
 
 ---
@@ -90,50 +114,87 @@ Here, $\alpha \in (0,1]$ is the learning rate that controls how quickly the esti
 > "請簡要解釋 epsilon-greedy 演算法如何在探索與利用之間取得平衡，並舉例說明 epsilon 值變化對行為的影響。"
 
 ### (3) 程式碼與圖表
+這是一種平衡探索與利用的策略：
+ - 以 1% 的機率進行隨機探索（選擇任意 arm）
+ - 以 99% 的機率選擇目前估計報酬最高的 arm（利用）
 
+![image](https://github.com/user-attachments/assets/8f98e6a6-f06f-4d07-a765-75884b701b26)
 ```python
-import matplotlib.pyplot as plt
-
-def epsilon_greedy(env, epsilon=0.1, steps=1000):
+# epsilon-greedy 策略
+def epsilon_greedy(env, epsilon=0.01, steps=10000):
     k = env.k
-    Q = np.zeros(k)
-    N = np.zeros(k)
+    Q = np.zeros(k)  # 初始化每个 arm 的估计值
+    N = np.zeros(k)  # 初始化每个 arm 被选择的次数
     rewards = []
     cumulative = 0
 
     for t in range(steps):
         if np.random.rand() < epsilon:
-            action = np.random.choice(k)
+            action = np.random.choice(k)  # 探索
         else:
-            action = np.argmax(Q)
-        
+            action = np.argmax(Q)  # 利用
+
         reward = env.pull(action)
         N[action] += 1
-        Q[action] += (reward - Q[action]) / N[action]
+        Q[action] += (reward - Q[action]) / N[action]  # 更新估计
         cumulative += reward
         rewards.append(cumulative)
-    
-    return rewards
 
-env = BanditEnv()
-eps_rewards = epsilon_greedy(env)
+    return rewards, N
 
-plt.plot(eps_rewards, label='Epsilon-Greedy')
-plt.xlabel('Steps')
-plt.ylabel('Cumulative Reward')
-plt.title('Epsilon-Greedy Performance')
-plt.legend()
-plt.grid(True)
+# 执行改进的 epsilon-greedy 策略
+eps_rewards, eps_N = epsilon_greedy(env, epsilon=0.01)
+
+# 计算平均每步报酬
+avg_rewards = [r / (i + 1) for i, r in enumerate(eps_rewards)]
+
+# 绘制图表
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 1. 累积报酬
+axes[0].plot(eps_rewards)
+axes[0].set_title('Cumulative Reward')
+axes[0].set_xlabel('Steps')
+axes[0].set_ylabel('Total Reward')
+axes[0].grid(True)
+
+# 2. 平均每步报酬
+axes[1].plot(avg_rewards)
+axes[1].set_title('Average Reward per Step')
+axes[1].set_xlabel('Steps')
+axes[1].set_ylabel('Average Reward')
+axes[1].grid(True)
+
+# 3. 每个 arm 的选择次数
+axes[2].bar(np.arange(env.k), eps_N)
+axes[2].set_title('Arm Selection Counts')
+axes[2].set_xlabel('Arm')
+axes[2].set_ylabel('Times Selected')
+axes[2].grid(True, axis='y')
+
+plt.tight_layout()
+plt.suptitle('Epsilon-Greedy Strategy Summary', fontsize=16, y=1.05)
 plt.show()
 ```
-![image](https://github.com/user-attachments/assets/e5210a9e-e987-45ef-be65-263dc2005d0a)
 
 ### (4) 結果分析
 
-- **時間分析：** 從圖表中可以看到，Epsilon-Greedy 在初期（前 100~200 步）呈現較多波動，累積獎勵曲線的斜率變化明顯。這是因為它會以機率 ε 隨機選擇次佳臂（exploration），導致收斂初期常選錯臂，進而使累積獎勵成長較慢。然而隨著時間推移，曲線漸漸變得平滑，顯示它逐漸集中在獎勵較高的臂上（exploitation）。但由於 ε 為固定值（如 0.1），即使後期仍有 10% 機會選錯臂，這會使最終累積獎勵略低於其他演算法（例如 TS）。
-- 
-- **空間分析：** 此演算法只需儲存每個 arm 的：Q 值估計 和 選擇次數，運算成本低，空間與計算需求皆非常小。可說是四種方法中最節省資源的一種，適合嵌入式或資源有限設備。
+## ⏱ 時間角度（Time Perspective）
+# 1. 累積報酬（Cumulative Reward）
+- 圖中顯示累積報酬隨時間穩定成長。
+- 初期因為策略還在探索（尤其是 ε = 0.01 時偶爾會隨機選擇），所以報酬成長較慢。
+- 隨著時間增加，演算法逐漸學會最佳 arm，報酬成長曲線變得更陡峭。
 
+# 2. 平均每步報酬（Average Reward per Step）
+- 一開始報酬震盪大，表示演算法還在嘗試與學習。
+- 隨著步數增加，平均報酬逐漸穩定上升並趨近於最佳 arm 的期望值（接近 0.25）。
+- 這表明 epsilon-greedy 在時間推移中學會了接近最優策略。
+---
+## 📌 空間角度（Space Perspective）
+# 3. arm 選擇次數（Arm Selection Counts）
+- 最佳 arm（被標記為金色的那一個）被選擇得最多，顯示策略成功辨識出它。
+- 其餘 arm 的選擇次數非常少，只在早期探索階段或偶爾隨機選擇中出現。
+- 這種選擇分佈符合 epsilon-greedy 的性質：絕大多數時間都選擇目前預估最好的選項，只有少部分時間進行隨機探索。
 ---
 
 ## 📌 演算法二：UCB (Upper Confidence Bound)
