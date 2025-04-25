@@ -42,7 +42,7 @@ Epsilon-Greedy 是一種基礎的探索策略，在每一步中以機率 ε 隨�
  2. 平均每步報酬（Average Reward per Step）
     - 平均每步報酬趨勢緩慢上升，但最終穩定在非常低的值（約 0.05），顯示其長期收益非常有限。
     - 由於未正確找到最佳 arm，使得 exploitation 階段也無法有效提升平均收益。
----
+    
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
     - Epsilon-Greedy 策略下，第 17 號 arm 被選擇次數最多，而真正的最佳 arm（第 15 號）幾乎沒有被重點選取。
@@ -71,7 +71,7 @@ UCB 方法基於「樂觀原則」，對每個 arm 計算其平均報酬與一�
  2. 平均每步報酬（Average Reward per Step）
     - 平均每步報酬逐漸趨於穩定，大約收斂到 0.04。
     - 曲線相對平滑，波動小，說明 UCB 能在時間上有效利用經驗，減少無效探索。
----
+      
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
     - 第 15 號 arm 被選擇最多，證明成功找到最佳 arm。
@@ -101,7 +101,7 @@ Softmax 是一種機率性選擇策略，根據每個 arm 的平均報酬轉換�
  2. 平均每步報酬（Average Reward per Step）
     - 平均每步報酬逐漸趨於穩定，大約收斂到 0.05。
     - 長期表現穩健，略優於 UCB。
----
+
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
     - 雖然第 15 號 arm仍然是被最多次選擇的，但其他 arm 也有較多次的探索紀錄，相比 Epsilon-Greedy更加平均。
@@ -132,7 +132,7 @@ Thompson Sampling 是一種貝葉斯策略，為每個 arm 建立報酬機率模
  2. 平均每步報酬（Average Reward per Step）
     - 平均每步報酬快速提升並穩定在約 0.1 左右，遠高於其他方法。
     - 說明 Thompson Sampling 既能快速找到最佳 arm，又能穩定 exploitation，長期收益極佳。
----
+
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
   - 第 15 號 arm 被極大比例地選擇，幾乎壟斷了所有操作。
