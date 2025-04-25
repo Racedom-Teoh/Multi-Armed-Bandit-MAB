@@ -181,20 +181,20 @@ plt.show()
 
 ### ⏱ 時間角度（Time Perspective）
  1. 累積報酬（Cumulative Reward）
-- 圖中顯示累積報酬隨時間穩定成長。
-- 初期因為策略還在探索（尤其是 ε = 0.01 時偶爾會隨機選擇），所以報酬成長較慢。
-- 隨著時間增加，演算法逐漸學會最佳 arm，報酬成長曲線變得更陡峭。
+  - 圖中顯示累積報酬隨時間穩定成長。
+  - 初期因為策略還在探索（尤其是 ε = 0.01 時偶爾會隨機選擇），所以報酬成長較慢。
+  - 隨著時間增加，演算法逐漸學會最佳 arm，報酬成長曲線變得更陡峭。
 
  2. 平均每步報酬（Average Reward per Step）
-- 一開始報酬震盪大，表示演算法還在嘗試與學習。
-- 隨著步數增加，平均報酬逐漸穩定上升並趨近於最佳 arm 的期望值（接近 0.25）。
-- 這表明 epsilon-greedy 在時間推移中學會了接近最優策略。
+  - 一開始報酬震盪大，表示演算法還在嘗試與學習。
+  - 隨著步數增加，平均報酬逐漸穩定上升並趨近於最佳 arm 的期望值（接近 0.25）。
+  - 這表明 epsilon-greedy 在時間推移中學會了接近最優策略。
 ---
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
-- 最佳 arm（被標記為金色的那一個）被選擇得最多，顯示策略成功辨識出它。
-- 其餘 arm 的選擇次數非常少，只在早期探索階段或偶爾隨機選擇中出現。
-- 這種選擇分佈符合 epsilon-greedy 的性質：絕大多數時間都選擇目前預估最好的選項，只有少部分時間進行隨機探索。
+  - 最佳 arm（被標記為金色的那一個）被選擇得最多，顯示策略成功辨識出它。
+  - 其餘 arm 的選擇次數非常少，只在早期探索階段或偶爾隨機選擇中出現。
+  - 這種選擇分佈符合 epsilon-greedy 的性質：絕大多數時間都選擇目前預估最好的選項，只有少部分時間進行隨機探索。
 ---
 
 ## 📌 演算法二：UCB (Upper Confidence Bound)
@@ -203,12 +203,11 @@ plt.show()
 
 ![image](https://github.com/user-attachments/assets/0c6497c0-270d-443e-a6e2-7d7cdf7e65f7)
 
-
 ```latex
 \documentclass{article}
 \usepackage{amsmath}
-\usepackage[margin=1in]{geometry}  % 更好看一点的页面边距
-\usepackage{tcolorbox}  % 用于漂亮的内容框
+\usepackage[margin=1in]{geometry} 
+\usepackage{tcolorbox}  
 
 \begin{document}
 
@@ -253,51 +252,87 @@ Here, $\alpha \in (0,1]$ is the learning rate that controls how quickly the esti
 \end{document}
 
 ```
-
 ### (2) ChatGPT Prompt
 
 > "請說明 UCB 演算法如何透過置信區間達到探索與利用的平衡，並指出常數 c 對行為的影響。"
 
 ### (3) 程式碼與圖表
-
+![image](https://github.com/user-attachments/assets/3437728f-7a24-47f4-9ab1-7fcad5f7c214)
 ```python
-def ucb(env, c=2, steps=1000):
+# UCB 策略
+def ucb(env, c=3, steps=10000):
     k = env.k
-    Q = np.zeros(k)
-    N = np.zeros(k)
+    Q = np.zeros(k)  # 每個 arm 的估算期望報酬
+    N = np.zeros(k)  # 每個 arm 被選擇的次數
     rewards = []
     cumulative = 0
 
     for t in range(1, steps + 1):
-        ucb_values = np.where(N > 0, Q + c * np.sqrt(np.log(t) / N), float('inf'))
-        action = np.argmax(ucb_values)
+        ucb_values = Q + c * np.sqrt(np.log(t) / (N + 1e-6))  # 計算 UCB 值，避免除以零
+        # 隨機選擇具有最大 UCB 值的 arm
+        max_ucb_value = np.max(ucb_values)
+        best_arms = np.where(ucb_values == max_ucb_value)[0]
+        action = np.random.choice(best_arms)  # 隨機選擇其中一個最佳 arm
+        
         reward = env.pull(action)
 
         N[action] += 1
-        Q[action] += (reward - Q[action]) / N[action]
+        Q[action] += (reward - Q[action]) / N[action]  # 更新 Q 值
         cumulative += reward
         rewards.append(cumulative)
-    
-    return rewards
 
-env = BanditEnv()
-ucb_rewards = ucb(env)
+    return rewards, N
 
-plt.plot(ucb_rewards, label='UCB')
-plt.xlabel('Steps')
-plt.ylabel('Cumulative Reward')
-plt.title('UCB Performance')
-plt.legend()
-plt.grid(True)
+# 执行 UCB 策略
+ucb_rewards, ucb_N = ucb(env)
+
+# 计算平均每步报酬
+avg_rewards = [r / (i + 1) for i, r in enumerate(ucb_rewards)]
+
+# 绘制图表
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 1. 累积报酬
+axes[0].plot(ucb_rewards)
+axes[0].set_title('Cumulative Reward')
+axes[0].set_xlabel('Steps')
+axes[0].set_ylabel('Total Reward')
+axes[0].grid(True)
+
+# 2. 平均每步报酬
+axes[1].plot(avg_rewards)
+axes[1].set_title('Average Reward per Step')
+axes[1].set_xlabel('Steps')
+axes[1].set_ylabel('Average Reward')
+axes[1].grid(True)
+
+# 3. 每个 arm 的选择次数
+axes[2].bar(np.arange(env.k), ucb_N)
+axes[2].set_title('Arm Selection Counts')
+axes[2].set_xlabel('Arm')
+axes[2].set_ylabel('Times Selected')
+axes[2].grid(True, axis='y')
+
+plt.tight_layout()
+plt.suptitle('UCB Strategy Summary', fontsize=16, y=1.05)
 plt.show()
-
 ```
-![image](https://github.com/user-attachments/assets/0085c65d-3f4a-4b98-8021-2fd81cd55f0f)
+## (4) 結果分析
 
-### (4) 結果分析
+### ⏱ 時間角度（Time Perspective）
+ 1. 累積報酬（Cumulative Reward）
+  - 在初期，UCB 策略會進行探索（選擇多樣的 arms），因此累積報酬上升較慢。
+  - 隨著時間推進，UCB 策略逐漸學會偏好最優 arm，報酬成長逐漸加速。
 
-- **時間分析：**  根據圖表，UCB 曲線在前期上升速度比 Epsilon-Greedy 快，表示它在較短時間內就發現報酬較高的臂，並集中選擇。這是因為 UCB 會優先探索信心區間較大的 arm，在 early stage 就能更有效識別最優 arm。而到了中後期，曲線變得非常平滑且斜率高，表現穩定，收斂速度極快，是所有演算法中收斂表現最佳者之一。
-- **空間分析：** 需要記錄所有臂的選擇次數與 Q 值，空間複雜度與 ε-greedy 相當，但計算成本較高（log 與 sqrt 計算）。
+ 2. 平均每步報酬（Average Reward per Step）
+  - 初期，由於策略在進行探索，平均報酬有較大波動。
+  - 隨著步數增加，策略逐漸集中於最佳 arm，平均每步報酬逐步穩定，最終達到較高的值。
+---
+### 📌 空間角度（Space Perspective）
+ 3. arm 選擇次數（Arm Selection Counts）
+  - 最佳 arm 被選擇得最多，顯示 UCB 成功識別了最佳選擇。
+  - 其餘 arm 被選擇的次數相對較少，並且隨著時間的推移，選擇次數逐漸集中於最優的 arm。
+---
 
 ---
 
