@@ -181,20 +181,17 @@ plt.show()
 
 ### ⏱ 時間角度（Time Perspective）
  1. 累積報酬（Cumulative Reward）
-  - 圖中顯示累積報酬隨時間穩定成長。
-  - 初期因為策略還在探索（尤其是 ε = 0.01 時偶爾會隨機選擇），所以報酬成長較慢。
-  - 隨著時間增加，演算法逐漸學會最佳 arm，報酬成長曲線變得更陡峭。
+  - 累積報酬曲線整體上升，但過程中有明顯波動，且成長速度偏慢，最終累積報酬遠低於其他策略。
+  - 顯示 Epsilon-Greedy 策略在本次設定中無法有效辨識出真正高報酬的 arm，導致探索與 exploitation 的表現皆不理想。
 
  2. 平均每步報酬（Average Reward per Step）
-  - 一開始報酬震盪大，表示演算法還在嘗試與學習。
-  - 隨著步數增加，平均報酬逐漸穩定上升並趨近於最佳 arm 的期望值（接近 0.25）。
-  - 這表明 epsilon-greedy 在時間推移中學會了接近最優策略。
+  - 平均每步報酬趨勢緩慢上升，但最終穩定在非常低的值（約 0.05），顯示其長期收益非常有限。
+  - 由於未正確找到最佳 arm，使得 exploitation 階段也無法有效提升平均收益。
 ---
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
-  - 最佳 arm（被標記為金色的那一個）被選擇得最多，顯示策略成功辨識出它。
-  - 其餘 arm 的選擇次數非常少，只在早期探索階段或偶爾隨機選擇中出現。
-  - 這種選擇分佈符合 epsilon-greedy 的性質：絕大多數時間都選擇目前預估最好的選項，只有少部分時間進行隨機探索。
+  - Epsilon-Greedy 策略下，第 17 號 arm 被選擇次數最多，而真正的最佳 arm（第 15 號）幾乎沒有被重點選取。
+  - 表明 Epsilon-Greedy 在本情境下的探索效果不好，早期探索選錯 arm，後續 exploitation 又堅持錯誤的 arm，導致整體表現受限。
 ---
 
 ## 📌 演算法二：UCB (Upper Confidence Bound)
@@ -321,17 +318,17 @@ plt.show()
 
 ### ⏱ 時間角度（Time Perspective）
  1. 累積報酬（Cumulative Reward）
-  - 在初期，UCB 策略會進行探索（選擇多樣的 arms），因此累積報酬上升較慢。
-  - 隨著時間推進，UCB 策略逐漸學會偏好最優 arm，報酬成長逐漸加速。
+  - 累積報酬曲線上升趨勢比 Epsilon-Greedy更穩定且明顯，雖然仍有些小幅度波動，但整體走勢良好。
+  - 說明 UCB 能夠在初期快速辨識較好的 arms，並且在 exploitation 階段有效累積報酬。
 
  2. 平均每步報酬（Average Reward per Step）
-  - 初期，由於策略在進行探索，平均報酬有較大波動。
-  - 隨著步數增加，策略逐漸集中於最佳 arm，平均每步報酬逐步穩定，最終達到較高的值。
+  - 平均每步報酬逐漸趨於穩定，大約收斂到 0.04。
+  - 曲線相對平滑，波動小，說明 UCB 能在時間上有效利用經驗，減少無效探索。
 ---
 ### 📌 空間角度（Space Perspective）
  3. arm 選擇次數（Arm Selection Counts）
-  - 最佳 arm 被選擇得最多，顯示 UCB 成功識別了最佳選擇。
-  - 其餘 arm 被選擇的次數相對較少，並且隨著時間的推移，選擇次數逐漸集中於最優的 arm。
+  - 第 15 號 arm 被選擇最多，證明成功找到最佳 arm。
+  - 但其他 arm 的選擇次數較分散，顯示 Softmax 維持一定程度的隨機探索。
 ---
 
 ---
@@ -341,7 +338,6 @@ plt.show()
 ### (1) Algorithm Formula (LaTeX)
 
 ![image](https://github.com/user-attachments/assets/665bcca3-6b49-4c48-a4b5-604a8857b183)
-
 
 ```latex
 \documentclass{article}
@@ -402,45 +398,80 @@ Here, $\alpha \in (0,1]$ is the learning rate that determines how quickly the es
 > "請用簡單例子說明 Softmax 策略如何根據不同溫度參數（\tau）調整探索程度，並解釋為何 \tau 越大越傾向探索。"
 
 ### (3) 程式碼與圖表
-
+![image](https://github.com/user-attachments/assets/1f26b984-02a8-42c1-bf7b-6d7a5861c1e5)
 ```python
-def softmax(env, tau=0.1, steps=1000):
+# Softmax 策略
+def softmax(env, tau=0.2, steps=10000):
     k = env.k
-    Q = np.zeros(k)
-    N = np.zeros(k)
+    Q = np.zeros(k)  # 每個 arm 的估算期望報酬
+    N = np.zeros(k)  # 每個 arm 被選擇的次數
     rewards = []
     cumulative = 0
 
     for t in range(steps):
-        exp_Q = np.exp(Q / tau)
-        probs = exp_Q / np.sum(exp_Q)
-        action = np.random.choice(k, p=probs)
-        
+        exp_Q = np.exp(Q / tau)  # 計算 Q 值的 Softmax 機率
+        probs = exp_Q / np.sum(exp_Q)  # 機率正規化
+        action = np.random.choice(k, p=probs)  # 根據機率選擇 arm
+
         reward = env.pull(action)
         N[action] += 1
         Q[action] += (reward - Q[action]) / N[action]
         cumulative += reward
         rewards.append(cumulative)
-    
-    return rewards
 
-env = BanditEnv()
-softmax_rewards = softmax(env)
+    return rewards, N
 
-plt.plot(softmax_rewards, label='Softmax')
-plt.xlabel('Steps')
-plt.ylabel('Cumulative Reward')
-plt.title('Softmax Performance')
-plt.legend()
-plt.grid(True)
+# 执行 Softmax 策略
+softmax_rewards, softmax_N = softmax(env)
+
+# 计算平均每步报酬
+avg_rewards = [r / (i + 1) for i, r in enumerate(softmax_rewards)]
+
+# 绘制图表
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 1. 累积报酬
+axes[0].plot(softmax_rewards)
+axes[0].set_title('Cumulative Reward')
+axes[0].set_xlabel('Steps')
+axes[0].set_ylabel('Total Reward')
+axes[0].grid(True)
+
+# 2. 平均每步报酬
+axes[1].plot(avg_rewards)
+axes[1].set_title('Average Reward per Step')
+axes[1].set_xlabel('Steps')
+axes[1].set_ylabel('Average Reward')
+axes[1].grid(True)
+
+# 3. 每个 arm 的选择次数
+axes[2].bar(np.arange(env.k), softmax_N)
+axes[2].set_title('Arm Selection Counts')
+axes[2].set_xlabel('Arm')
+axes[2].set_ylabel('Times Selected')
+axes[2].grid(True, axis='y')
+
+plt.tight_layout()
+plt.suptitle('Softmax Strategy Summary', fontsize=16, y=1.05)
 plt.show()
 ```
 ![image](https://github.com/user-attachments/assets/e9aa5448-1206-4d6a-990b-bcec5ba811d9)
 
-### (4) 結果分析
+## (4) 結果分析
 
-- **時間分析：** 從圖中可見 Softmax 的表現整體穩定但偏慢。初期成長率與 Epsilon-Greedy 接近，甚至略為落後。這是因為 Softmax 採用機率選擇，可能會頻繁選擇次佳臂。然而隨著時間推移，它的累積報酬曲線逐漸趨於穩定。整體來說收斂速度較慢，尤其是當 τ（溫度參數）設定不當時，會顯著拖慢學習進度。
-- **空間分析：** 與前述方法相同，主要成本在於每步需計算 softmax 機率分布。
+### ⏱ 時間角度（Time Perspective）
+ 1. 累積報酬（Cumulative Reward）
+  - 累積報酬曲線上升趨勢比 UCB 和 Epsilon-Greedy更穩定且明顯，雖然仍有些小幅度波動，但整體走勢良好。
+  - 說明 Softmax 能夠在初期快速辨識較好的 arms，並且在 exploitation 階段有效累積報酬。
+
+ 2. 平均每步報酬（Average Reward per Step）
+  - 平均每步報酬逐漸趨於穩定，大約收斂到 0.05。
+  - 長期表現穩健，略優於 UCB。
+---
+### 📌 空間角度（Space Perspective）
+ 3. arm 選擇次數（Arm Selection Counts）
+  - 雖然第 15 號 arm仍然是被最多次選擇的，但其他 arm 也有較多次的探索紀錄，相比 Epsilon-Greedy更加平均。
+  - 顯示 UCB 保持了一定程度的探索，同時也能聚焦在最佳 arm，符合其「樂觀初始估計」的特性。
 
 ---
 
@@ -517,49 +548,90 @@ This keeps the posterior up to date:
 > "請用簡單語言說明為何 Thompson Sampling 能自然地在探索與利用間取得平衡，以及 beta 分布在這裡的意義。"
 
 ### (3) 程式碼與圖表
+![image](https://github.com/user-attachments/assets/dafa5402-9aea-48a3-8be4-3afadf4e488c)
 
 ```python
-def thompson_sampling(env, steps=1000):
+def thompson_sampling(env, steps=10000):
     k = env.k
     alpha = np.ones(k)
     beta = np.ones(k)
     rewards = []
     cumulative = 0
+    N = np.zeros(k)  # 記錄每個 arm 被選擇的次數
 
     for t in range(steps):
-        theta = np.random.beta(alpha, beta)
-        action = np.argmax(theta)
+        theta = np.random.beta(alpha, beta)  # 根據 beta 分佈進行抽樣
+        action = np.argmax(theta)  # 選擇期望報酬最大的 arm
         reward = env.pull(action)
-        reward_bin = 1 if reward > 0 else 0  # 把常態分布轉為伯努力
 
+        # 將常態分佈的報酬轉換為二元回報
+        reward_bin = 1 if reward > 0 else 0  
+
+        # 更新 Beta 分佈參數
         alpha[action] += reward_bin
         beta[action] += 1 - reward_bin
         cumulative += reward
         rewards.append(cumulative)
+        N[action] += 1
 
-    return rewards
+    return rewards, N
 
-env = BanditEnv()
-ts_rewards = thompson_sampling(env)
+# 执行 Thompson Sampling 策略
+ts_rewards, ts_N = thompson_sampling(env)
 
-plt.plot(ts_rewards, label='Thompson Sampling')
-plt.xlabel('Steps')
-plt.ylabel('Cumulative Reward')
-plt.title('Thompson Sampling Performance')
-plt.legend()
-plt.grid(True)
+# 计算平均每步报酬
+avg_rewards = [r / (i + 1) for i, r in enumerate(ts_rewards)]
+
+# 绘制图表
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 1. 累积报酬
+axes[0].plot(ts_rewards)
+axes[0].set_title('Cumulative Reward')
+axes[0].set_xlabel('Steps')
+axes[0].set_ylabel('Total Reward')
+axes[0].grid(True)
+
+# 2. 平均每步报酬
+axes[1].plot(avg_rewards)
+axes[1].set_title('Average Reward per Step')
+axes[1].set_xlabel('Steps')
+axes[1].set_ylabel('Average Reward')
+axes[1].grid(True)
+
+# 3. 每个 arm 的选择次数
+axes[2].bar(np.arange(env.k), ts_N)
+axes[2].set_title('Arm Selection Counts')
+axes[2].set_xlabel('Arm')
+axes[2].set_ylabel('Times Selected')
+axes[2].grid(True, axis='y')
+
+plt.tight_layout()
+plt.suptitle('Thompson Sampling Strategy Summary', fontsize=16, y=1.05)
 plt.show()
 ```
-![image](https://github.com/user-attachments/assets/5a58a159-e615-4ce8-8bff-f626fc7e7567)
+## (4) 結果分析
 
-### (4) 結果分析
+### ⏱ 時間角度（Time Perspective）
+ 1. 累積報酬（Cumulative Reward）
+  - 累積報酬曲線最為陡峭且穩定上升，最終累積報酬突破 1000。
+  - 顯著優於其他三種策略，表現最佳。
 
-- **時間分析：**  Thompson Sampling 的曲線一開始即呈現平穩上升，表示即使在初期，該方法也能有效選出高報酬 arm。從圖中可以清楚看到它早期就超越其他演算法，代表其探索效率高。中期與後期，TS 的累積報酬持續保持最高，且震盪最小。這顯示它能快速收斂，且不易被誤導至次優 arm，整體來說表現極為穩定。
-- **空間分析：**須追蹤每個 arm 的 alpha/beta，對空間需求略高；儘管計算略複雜，但在大多數 Python 環境中效率仍可接受。空間為 O(2k)，取樣操作是其唯一潛在瓶頸。但以換取超強穩定與收斂速度來看，極具性價比。
+ 2. 平均每步報酬（Average Reward per Step）
+  - 平均每步報酬快速提升並穩定在約 0.1 左右，遠高於其他方法。
+  - 說明 Thompson Sampling 既能快速找到最佳 arm，又能穩定 exploitation，長期收益極佳。
+---
+### 📌 空間角度（Space Perspective）
+ 3. arm 選擇次數（Arm Selection Counts）
+  - 第 15 號 arm 被極大比例地選擇，幾乎壟斷了所有操作。
+  - 其他 arm 選擇次數極少，顯示 Thompson Sampling 在確定最佳 arm 後迅速集中 exploitation。
+---
 
 ---
 
 ## 📊 所有演算法比較圖表
+![image](https://github.com/user-attachments/assets/0e4d5069-fa62-42b4-aa4a-40cc390504d8)
+![image](https://github.com/user-attachments/assets/a538a4af-ab99-4ef1-8297-1bf1d29ef187)
 
 ```python
 env = BanditEnv()
@@ -583,53 +655,43 @@ plt.legend()
 plt.grid(True)
 plt.show()
 ```
-![image](https://github.com/user-attachments/assets/50c8a93b-eb9a-4e35-8510-f37ffe6da88f)
+# 📋 總結比較表（時間分析 + 空間分析）
 
-## 🧾 總結表格
-
-| 演算法             | 初期表現   | 收斂速度 | 空間需求   | 運算成本                 | 圖表收斂曲線特性             |
-|--------------------|------------|----------|------------|--------------------------|------------------------------|
-| Epsilon-Greedy     | 波動大     | 中等     | 低 `O(k)`  | 低                        | 後期漸穩，略落後             |
-| UCB                | 穩定快速   | 快       | 低 `O(k)`  | 中（需 `log` 與 `sqrt`） | 斜率穩定，快速上升           |
-| Softmax            | 穩定但慢   | 慢       | 低 `O(k)`  | 高（需 `exp` 與正規化）  | 緩慢收斂，波動小             |
-| Thompson Sampling  | 穩定且高   | 快速     | 中 `O(2k)` | 中（需 `beta` sampling） | 一路領先，最穩定             |
+| 策略 | 累積報酬成長 | 平均每步報酬 | 是否成功找到最佳 Arm（第15個） | Arm 選擇分佈特性 |
+|:-----|:--------------|:------------|:----------------------------|:----------------|
+| **Epsilon-Greedy** | 緩慢且震盪 | 約 0.02，偏低 | ❌ 沒有找到（集中在第20個 arm） | 單一 suboptimal arm 被過度選擇 |
+| **UCB** | 穩定且成長快 | 約 0.04，穩定中等 | ✅ 成功找到最佳 arm | 主選最佳 arm，但仍持續少量探索其他 |
+| **Softmax** | 平穩上升 | 約 0.05，略高於 UCB | ✅ 成功找到最佳 arm | 主要集中在最佳 arm，但仍有分散探索 |
+| **Thompson Sampling** | 極速穩定上升 | 約 0.1，最高 | ✅ 成功且快速找到最佳 arm | 幾乎完全集中在最佳 arm，極少探索其他 |
 
 ---
 
-# 🔍 結論與差異比較
+# 📈 結論與差異比較表
 
-| 演算法             | 優點                                                                 | 缺點                                                                 |
-|--------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
-| **Epsilon-Greedy** | - 實作簡單、邏輯直觀。<br>- 在大多數情境中表現穩定，具備基本探索與利用能力。 | - 探索機率 ε 為固定值，無法根據學習進度自調整。<br>- 容易在初期探索不足、後期探索過多。 |
-| **UCB**            | - 理論有保證（後悔界 upper bound）。<br>- 初期強制探索，有效避免陷入局部最優。 | - 每次需計算置信上界，運算較複雜。<br>- 對高變異臂可能高估其價值，導致過度探索。     |
-| **Softmax**        | - 機率式選擇方式，每臂皆有被選中的機會。<br>- 溫度參數具彈性，可控制探索程度。 | - 對溫度參數敏感，難以調整最適值。<br>- 實作時需進行指數與歸一化運算，計算成本較高。 |
-| **Thompson Sampling** | - 自然平衡探索與利用，依據後驗分布選臂。<br>- 收斂快，效果良好。             | - 需對獎勵有先驗假設（如伯努利分布）。<br>- 每次更新需採樣，運算邏輯較複雜。        |
-
----
-
-## ✅ 空間分析
-
-- 所有演算法的空間需求皆為 $O(k)$，其中 $k$ 為拉霸臂數量。
-- Epsilon-Greedy、UCB、Softmax 僅需儲存平均獎勵與次數。
-- **Thompson Sampling** 額外儲存每個臂的 Beta 分布參數（α 與 β），空間雖仍為 $O(k)$，但實際儲存量稍多。
+| 項目 | Epsilon-Greedy | UCB | Softmax | Thompson Sampling |
+|:-----|:---------------|:----|:--------|:------------------|
+| **探索效率** | 低，容易選錯 | 中高，理性探索 | 中，平滑探索 | 高，快速聚焦 |
+| **Exploitation 效率** | 低 | 中等偏高 | 高 | 極高 |
+| **收斂速度** | 慢且不穩定 | 穩定收斂 | 穩定且較快 | 非常快 |
+| **累積報酬最終表現** | 最低 | 中等 | 次高 | 最高 |
+| **穩健性** | 差 | 好 | 中等偏好 | 非常好 |
 
 ---
 
-## ✅ 時間分析
+# 🧠 各演算法優劣與適用情境比較表
 
-| 演算法             | 每次選擇臂的時間成本                                                                 |
-|--------------------|----------------------------------------------------------------------------------------|
-| **Epsilon-Greedy** | 最快。僅需比較平均獎勵與產生一個隨機值，時間複雜度為 $O(k)$。                           |
-| **UCB**            | 需計算每個臂的 $\text{平均} + \text{信賴區間}$，包含對數與開根號，複雜度為 $O(k)$。         |
-| **Softmax**        | 需計算每個臂的指數值與歸一化機率，包含浮點數與指數運算，時間複雜度為 $O(k)$。             |
-| **Thompson Sampling** | 每次需從每個臂的 Beta 分布採樣，雖然仍為 $O(k)$，但實際運算成本視實作與採樣效率而定。     |
+| 策略 | 優點 | 缺點 | 適用情境 |
+|:-----|:-----|:-----|:---------|
+| **Epsilon-Greedy** | 簡單易懂，實作快速 | 容易卡在錯誤 arm，長期表現差 | 問題簡單、arm 數量少、不要求高精度時 |
+| **UCB** | 理論基礎強，自動平衡探索與利用 | 初期需要較多探索步驟，收斂速度受限 | 問題中 arm 數量中等，需要平穩成長的情境 |
+| **Softmax** | 探索更平滑，避免過早收斂 | 需要微調溫度參數，否則探索不足或過度 | 需兼顧穩健與靈活性的中型專案 |
+| **Thompson Sampling** | 探索與 exploitation 自然融合，收斂快 | 實作上稍微複雜，依賴隨機性 | 資源有限時、需要快速決策的場景（如線上廣告投放、推薦系統） |
 
+---
 
-### 🎯 各演算法優劣與適用情境比較表
+# 📝 總結小結論
 
-| 演算法              | 優勢                                                                 | 限制                                                                 | 適用情境說明                                                                 |
-|----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|------------------------------------------------------------------------------|
-| **Epsilon-Greedy**   | - 實作簡單<br>- 低計算成本                                             | - 探索率 ε 固定可能導致收斂慢或過度探索                                 | - 適合臂的數量少、任務時間長（可慢慢學習）                                   |
-| **UCB**              | - 理論有保證<br>- 可自動調整探索程度                                     | - 對估計不準時表現不穩定<br>- 需知道總時間步數                         | - 適合臂之間差距明顯、需快速收斂的情境                                       |
-| **Softmax**          | - 採用機率方式平衡探索與利用<br>- 可調整溫度參數來控制選擇行為              | - 對參數（溫度）敏感<br>- 可能長期維持在次佳選擇                         | - 適合臂之間差異不大、希望保有一定隨機性以避免陷入局部最優                   |
-| **Thompson Sampling**| - 自然整合探索與利用（Bayesian 方法）<br>- 表現穩定、收斂速度快            | - 實作與計算較複雜<br>- 需建構每個臂的後驗分布                          | - 適合臂數量不多但需要高效率決策的場景<br>- 表現最佳於不確定性高或報酬差距小的任務 |
+- **Epsilon-Greedy**：在本情境表現最差，探索過程失敗導致 exploitation 階段無法彌補。
+- **UCB**：合理找到最佳 arm，穩定成長，但長期收益略遜。
+- **Softmax**：找到最佳 arm，長期表現良好，但需要小心參數設定。
+- **Thompson Sampling**：表現最佳，快速且有效地掌握最佳 arm，最適合資源有限且要求快速學習的情境。
