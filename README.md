@@ -146,14 +146,17 @@ Thompson Sampling 是一種貝葉斯策略，為每個 arm 建立報酬機率模
 ## 📊 所有演算法比較圖表
 ![image](https://github.com/user-attachments/assets/0e4d5069-fa62-42b4-aa4a-40cc390504d8)
 ---
+---
+
 ![image](https://github.com/user-attachments/assets/a538a4af-ab99-4ef1-8297-1bf1d29ef187)
+---
 ---
 
 # 📋 總結比較表（時間分析 + 空間分析）
 
 | 策略 | 累積報酬成長 | 平均每步報酬 | 是否成功找到最佳 Arm（第15個） | Arm 選擇分佈特性 |
 |:-----|:--------------|:------------|:----------------------------|:----------------|
-| **Epsilon-Greedy** | 緩慢且震盪 | 約 0.02，偏低 | ❌ 沒有找到（集中在第20個 arm） | 單一 suboptimal arm 被過度選擇 |
+| **Epsilon-Greedy** | 緩慢且震盪 | 約 0.02，偏低 | ❌ 沒有找到（集中在第17個 arm） | 單一 suboptimal arm 被過度選擇 |
 | **UCB** | 穩定且成長快 | 約 0.04，穩定中等 | ✅ 成功找到最佳 arm | 主選最佳 arm，但仍持續少量探索其他 |
 | **Softmax** | 平穩上升 | 約 0.05，略高於 UCB | ✅ 成功找到最佳 arm | 主要集中在最佳 arm，但仍有分散探索 |
 | **Thompson Sampling** | 極速穩定上升 | 約 0.1，最高 | ✅ 成功且快速找到最佳 arm | 幾乎完全集中在最佳 arm，極少探索其他 |
