@@ -11,7 +11,7 @@
  - 真實期望值 μ_i 為從 N(0, 0.01) 隨機生成
  - 隨機指定一個最佳 arm，其期望值額外加上 0.25
 
-![image](https://github.com/user-attachments/assets/ff0e27d3-48a6-4c3a-8ea2-fa901512d5c2)
+![image](https://github.com/user-attachments/assets/a59b8cc2-fff9-4ef6-9f67-13c8a5189b30)
 
 ---
 
