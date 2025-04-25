@@ -177,21 +177,21 @@ plt.suptitle('Epsilon-Greedy Strategy Summary', fontsize=16, y=1.05)
 plt.show()
 ```
 
-### (4) 結果分析
+## (4) 結果分析
 
-## ⏱ 時間角度（Time Perspective）
-# 1. 累積報酬（Cumulative Reward）
+### ⏱ 時間角度（Time Perspective）
+ 1. 累積報酬（Cumulative Reward）
 - 圖中顯示累積報酬隨時間穩定成長。
 - 初期因為策略還在探索（尤其是 ε = 0.01 時偶爾會隨機選擇），所以報酬成長較慢。
 - 隨著時間增加，演算法逐漸學會最佳 arm，報酬成長曲線變得更陡峭。
 
-# 2. 平均每步報酬（Average Reward per Step）
+ 2. 平均每步報酬（Average Reward per Step）
 - 一開始報酬震盪大，表示演算法還在嘗試與學習。
 - 隨著步數增加，平均報酬逐漸穩定上升並趨近於最佳 arm 的期望值（接近 0.25）。
 - 這表明 epsilon-greedy 在時間推移中學會了接近最優策略。
 ---
-## 📌 空間角度（Space Perspective）
-# 3. arm 選擇次數（Arm Selection Counts）
+### 📌 空間角度（Space Perspective）
+ 3. arm 選擇次數（Arm Selection Counts）
 - 最佳 arm（被標記為金色的那一個）被選擇得最多，顯示策略成功辨識出它。
 - 其餘 arm 的選擇次數非常少，只在早期探索階段或偶爾隨機選擇中出現。
 - 這種選擇分佈符合 epsilon-greedy 的性質：絕大多數時間都選擇目前預估最好的選項，只有少部分時間進行隨機探索。
