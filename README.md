@@ -140,6 +140,7 @@ Thompson Sampling 是一種貝葉斯策略，為每個 arm 建立報酬機率模
 ---
 
 ## 📊 所有演算法比較圖表
+
 ![image](https://github.com/user-attachments/assets/0e4d5069-fa62-42b4-aa4a-40cc390504d8)
 ---
 
